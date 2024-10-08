@@ -1,0 +1,43 @@
+.main-container {
+  margin: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 3rem;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  max-width: 100%;
+}
+
+.form-header {
+  margin-block: 1.5rem;
+}
+
+.form-email__title {
+  font-size: 2.5rem;
+}
+
+.email-subtitle__primary {
+  font-size: 1.2rem;
+}
+
+.email-subtitle__secondary {
+  font-size: 1rem;
+}
+
+/* customer data input field  */
+
+.form-data__field {
+  display: flex;
+  flex-flow: column wrap;
+  align-items: start;
+  justify-content: start;
+  width: 100%;
+  flex-basis: 70%;
+}
