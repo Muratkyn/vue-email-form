@@ -1,0 +1,6 @@
+@import url("https://fonts.googleapis.com/css2?family=Dosis:wght@200..800&display=swap");
+#app body {
+  font-family: "Dosis", sans-serif;
+  font-optical-sizing: auto;
+  width: 100%;
+}
