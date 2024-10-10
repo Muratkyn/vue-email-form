@@ -1,5 +1,5 @@
 <template>
-  <div class="main-container">
+  <div class="main-container" v-if="isComponentVisible">
     <div>
       <div class="form-header">
         <p class="form-email__title">Scrivici una e-mail</p>
@@ -14,7 +14,7 @@
             È necessario compilare correttamente tutti i campi obbligatori per
             proseguire con l'operazione.
           </i>
-        </p>
+        </p> 
       </div>
       <p class="form-input__subtitle">Il tuo nominativo</p>
       <div class="form-data__field">
@@ -43,7 +43,8 @@
             v-model="store.requestType"
             @change="handleSelectChange(store.requestType)"
           >
-            >
+            <option disabled selected value>-- Tipo di richiesta --</option>
+
             <option
               v-for="option in customerRequest.selections"
               :value="option.value"
@@ -58,8 +59,13 @@
             {{ customerRequest.label2 }}
             <span class="obligatory-data"> -obbligatorio</span>
           </p>
-          <select class="request-data__input" v-model="store.requestSpecific">
+          <select
+            :disabled="!enableSelect"
+            class="request-data__input"
+            v-model="store.requestSpecific"
+          >
             >
+            <option disabled selected value>-- Specifica --</option>
             <option
               :value="option.value"
               :key="option.name"
@@ -76,12 +82,13 @@
           </p>
           <select class="request-data__input" v-model="store.preferredStore">
             >
+            <option disabled selected value>-- Negozio Preferito --</option>
             <option
-              v-for="store in preferredStore"
-              :value="store.value"
-              :key="store.value"
+              v-for="singleStore in sortedEntities"
+              :value="singleStore.id"
+              :key="singleStore.id"
             >
-              {{ store.name }}
+              {{ singleStore.publicName }}
             </option>
           </select>
         </div>
@@ -91,7 +98,16 @@
           Il tuo Messaggio
           <span class="obligatory-data"> -obbligatorio</span>
         </p>
-        <input class="message-data__input" type="text" />
+        <textarea
+          class="message-data__input"
+          name="customerMessage"
+          id="customerMessage"
+          cols="30"
+          rows="10"
+          maxLength="3000"
+          placeholder="(max 3000 caratteri)"
+          v-model="store.customerMessage"
+        ></textarea>
       </div>
       <div class="request-sending__container">
         <h4>
@@ -104,30 +120,97 @@
         </h4>
       </div>
       <div class="send-request__button-wrapper">
-        <button class="request-button">Invia Richiesta</button>
+        <button
+          :disabled="!enableButton"
+          class="request-button"
+          @click="onSendRequest()"
+        >
+          Invia Richiesta
+        </button>
       </div>
     </div>
   </div>
+  <SummaryData v-if="!isComponentVisible" />
 </template>
-
 <script setup lang="ts">
-import "@/components/EmailComponent.css";
-import { customerData, preferredStore } from "@/constants";
-import { customerRequest } from "@/constants";
+import { computed, ref, reactive, watch } from "vue";
 import { useAppStore } from "@/store/store";
+import { customerData, entities } from "@/constants";
+import { customerRequest } from "@/constants";
 import type { CustomerData, Options } from "@/types";
-import { ref } from "vue";
+import SummaryData from "@/components/SummaryData.vue";
+import "@/components/EmailComponent.css";
+import { emailSchema } from "@/schema/index";
+import { z } from "zod";
 
+const store = useAppStore();
+const isComponentVisible = ref<boolean>(true);
 const options = ref<Options[]>([]);
+
+// Store errors in a reactive object
+const errors = reactive<{ [key: string]: string | null }>({
+  customerName: null,
+  customerLastName: null,
+  customerEmail: null,
+  customerZipCode: null,
+});
+
+// Validate function to check form fields
+const validateFields = () => {
+  const result = emailSchema.safeParse(store.customerData);
+  if (!result.success) {
+    // Loop over the errors and assign them to the reactive errors object
+    result.error.errors.forEach((err) => {
+      const field = err.path[0] as keyof typeof errors;
+      errors[field] = err.message;
+    });
+    return false;
+  } else {
+    // Clear all errors if validation passes
+    Object.keys(errors).forEach((key) => {
+      errors[key] = null;
+    });
+    return true;
+  }
+};
+
+// Watchers for dynamic field validation
+watch(() => store.customerData, validateFields, { deep: true });
 
 const handleSelectChange = (request: string) => {
   options.value = customerRequest.selections.find(
     (el) => el.value === request
   )!.options;
-  console.log(options, "......");
+  store.requestSpecific = "";
 };
 
-const store = useAppStore();
+const sortedEntities = computed(() => {
+  return [...entities].sort((a, b) => a.publicName.localeCompare(b.publicName));
+});
+
+const enableButton = computed(() => {
+  const customerDataEntered = Object.values(store.customerData).every(
+    (el) => el !== ""
+  );
+  const otherDataEntered = [
+    store.requestType,
+    store.requestSpecific,
+    store.preferredStore,
+    store.customerMessage,
+  ].every((el) => el !== "");
+  return customerDataEntered && otherDataEntered;
+});
+
+const enableSelect = computed(() => {
+  return store.requestType !== "" && store.requestType;
+});
+
+const onSendRequest = () => {
+  const isValid = validateFields();
+  if (isValid) {
+    isComponentVisible.value = !isComponentVisible;
+  }
+};
 </script>
 
 <style lang="scss" scoped></style>

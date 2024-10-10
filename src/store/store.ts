@@ -13,11 +13,13 @@ export const useAppStore = defineStore("store", () => {
   const requestType = ref<string>("");
   const requestSpecific = ref<string>("");
   const preferredStore = ref<string>("");
+  const customerMessage = ref<string>("");
 
   return {
     customerData,
     requestType,
     requestSpecific,
     preferredStore,
+    customerMessage,
   };
 });
