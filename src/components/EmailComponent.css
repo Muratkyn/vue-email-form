@@ -205,3 +205,12 @@
   color: #666666;
   cursor: not-allowed;
 }
+
+.validInput {
+  border-color: #188803;
+}
+
+.error-message {
+  color: red;
+  font-family: Arial, Helvetica, sans-serif;
+}
