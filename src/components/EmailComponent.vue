@@ -25,9 +25,28 @@
           </p>
           <input
             class="form-data__input"
+            :class="{ validInput: isValidField(field.name) }"
             type="text"
             v-model="store.customerData[field.name as keyof CustomerData]"
+            @input="store.handleValidation(field.name)"
           />
+          <p
+            v-if="
+              field.name === 'customerEmail' && store.errors.customerEmailError
+            "
+            class="error-message"
+          >
+            {{ store.errors.customerEmailError }}
+          </p>
+          <p
+            v-if="
+              field.name === 'customerZipCode' &&
+              store.errors.customerZipCodeError
+            "
+            class="error-message"
+          >
+            {{ store.errors.customerZipCodeError }}
+          </p>
         </div>
       </div>
       <p class="form-input__subtitle">Dettagli di richiesta</p>
@@ -143,7 +162,6 @@ import { customerRequest } from "@/constants";
 import type { CustomerData, Options } from "@/types";
 import SummaryData from "@/components/SummaryData.vue";
 import "@/components/EmailComponent.css";
-import { emailSchema } from "@/schema/index";
 
 const store = useAppStore();
 const isComponentVisible = ref<boolean>(true);
@@ -171,7 +189,9 @@ const enableButton = computed(() => {
     store.preferredStore,
     store.customerMessage,
   ].every((el) => el !== "");
-  return customerDataEntered && otherDataEntered;
+
+  const noError = Object.values(store.errors).every((el) => el === "");
+  return customerDataEntered && otherDataEntered && noError;
 });
 
 const enableSelect = computed(() => {
@@ -180,6 +200,21 @@ const enableSelect = computed(() => {
 
 const onSendRequest = () => {
   isComponentVisible.value = !isComponentVisible;
+};
+
+const isValidField = (fieldName: string) => {
+  if (fieldName === "customerEmail") {
+    return (
+      store.customerData.customerEmail !== "" &&
+      !store.errors.customerEmailError
+    );
+  } else if (fieldName === "customerZipCode") {
+    return (
+      store.customerData.customerZipCode !== "" &&
+      !store.errors.customerZipCodeError
+    );
+  }
+  return store.customerData[fieldName as keyof CustomerData] !== "";
 };
 </script>
 
