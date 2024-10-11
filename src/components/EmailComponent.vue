@@ -14,7 +14,7 @@
             È necessario compilare correttamente tutti i campi obbligatori per
             proseguire con l'operazione.
           </i>
-        </p> 
+        </p>
       </div>
       <p class="form-input__subtitle">Il tuo nominativo</p>
       <div class="form-data__field">
@@ -132,55 +132,28 @@
   </div>
   <SummaryData v-if="!isComponentVisible" />
 </template>
+
 <script setup lang="ts">
-import { computed, ref, reactive, watch } from "vue";
+import { computed, ref } from "vue";
+
 import { useAppStore } from "@/store/store";
 import { customerData, entities } from "@/constants";
 import { customerRequest } from "@/constants";
+
 import type { CustomerData, Options } from "@/types";
 import SummaryData from "@/components/SummaryData.vue";
 import "@/components/EmailComponent.css";
 import { emailSchema } from "@/schema/index";
-import { z } from "zod";
 
 const store = useAppStore();
 const isComponentVisible = ref<boolean>(true);
 const options = ref<Options[]>([]);
 
-// Store errors in a reactive object
-const errors = reactive<{ [key: string]: string | null }>({
-  customerName: null,
-  customerLastName: null,
-  customerEmail: null,
-  customerZipCode: null,
-});
-
-// Validate function to check form fields
-const validateFields = () => {
-  const result = emailSchema.safeParse(store.customerData);
-  if (!result.success) {
-    // Loop over the errors and assign them to the reactive errors object
-    result.error.errors.forEach((err) => {
-      const field = err.path[0] as keyof typeof errors;
-      errors[field] = err.message;
-    });
-    return false;
-  } else {
-    // Clear all errors if validation passes
-    Object.keys(errors).forEach((key) => {
-      errors[key] = null;
-    });
-    return true;
-  }
-};
-
-// Watchers for dynamic field validation
-watch(() => store.customerData, validateFields, { deep: true });
-
 const handleSelectChange = (request: string) => {
   options.value = customerRequest.selections.find(
     (el) => el.value === request
   )!.options;
+
   store.requestSpecific = "";
 };
 
@@ -206,10 +179,7 @@ const enableSelect = computed(() => {
 });
 
 const onSendRequest = () => {
-  const isValid = validateFields();
-  if (isValid) {
-    isComponentVisible.value = !isComponentVisible;
-  }
+  isComponentVisible.value = !isComponentVisible;
 };
 </script>
 
